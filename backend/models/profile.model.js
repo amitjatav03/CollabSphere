@@ -1,21 +1,17 @@
 const mongoose = require("mongoose");
 
 const profileSchema = new mongoose.Schema({
-    // profilepic: {
-    //     type: String,
-    //     required: true,
-    // },
     about: {
         type: String,
-        required: true,
+        default: ""
     },
     github: {
         type: String,
-        required: true,
+        default: ""
     },
     linkedin: {
         type: String,
-        required: true,
+        default: ""
     },
     skills: [{
         type: String
@@ -30,13 +26,12 @@ const profileSchema = new mongoose.Schema({
     }],
     achievements: [{
         type: String,
-        required: true,
+        default: ""
     }],
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     }
 });
-
 
 module.exports = mongoose.model("Profile", profileSchema);

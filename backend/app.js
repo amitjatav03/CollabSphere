@@ -7,7 +7,7 @@ const dotenv = require("dotenv");
 
 // importing routes
 const userRoutes = require("./routes/user.routes");
-
+const friendRoutes = require("./routes/friend.routes");
 
 dotenv.config(); 
 const PORT = process.env.PORT || 5000;
@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 // routers
 app.use("/api/auth", userRoutes);
-
+app.use("/api/friends", friendRoutes);
 
 app.get("/", (req, res) => {
     return res.json({

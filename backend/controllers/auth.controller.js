@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mailSender = require("../utils/mailSender");
 const { passwordUpdated } = require("../mail/templates/passwordUpdate");
+const mongoose = require("mongoose");
 const Profile = require("../models/profile.model");
 require("dotenv").config();
 
@@ -116,39 +117,56 @@ exports.signUp = async (req, res) => {
 
         // hash password
         const hash = await bcrypt.hash(password, 10);
+        console.log("hash", hash);
 
-        // create additional profile for user
+        // First create the user
+        console.log("creating the user...");
+        const userdata = await User.create({
+            fullname: {
+                firstname: fullname.firstname,
+                lastname: fullname.lastname
+            },
+            enroll,
+            branch,
+            course,
+            email,
+            password: hash,
+            image: `https://api.dicebear.com/9.x/initials/svg?seed=${fullname.firstname} ${fullname.lastname}`
+        });
+        console.log("User created:", userdata);
+
+        // Then create profile with user reference
         const profileDets = await Profile.create({
-            about: null,
-            github: null,
-            linkedin: null,
+            about: "",
+            github: "",
+            linkedin: "",
             skills: [],
             codingProfiles: [],
             achievements: [""],
-            user: null
+            user: userdata._id
         });
-        console.log("profile", profileDets);
-        // create the user
-        const userdata = await User.create({
-            fullname, enroll, branch, course, email,
-            password: hash,
-            profileDetails: profileDets._id,
-            image: `https://api.dicebear.com/9.x/initials/svg?seed=${fullname.firstname} ${fullname.lastname}`
-        });
-        console.log(userdata);
+        console.log("Profile created:", profileDets);
+
+        // Update user with profile reference
+        const updatedUser = await User.findByIdAndUpdate(
+            userdata._id,
+            { profileDetails: profileDets._id },
+            { new: true }
+        );
 
         // return response
         return res.status(200).json({
             success: true,
             message: "User Registered Successfully",
-            data: userdata
+            data: updatedUser
         });
 
     } catch (error) {
+        console.error("Signup error:", error);
         return res.status(500).json({
             success: false,
-            message: "Internal Server Error"
-        })
+            message: error.message || "Internal Server Error"
+        });
     }
 }
 
